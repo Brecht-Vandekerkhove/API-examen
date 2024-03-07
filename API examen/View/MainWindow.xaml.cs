@@ -1,4 +1,5 @@
-﻿using System;
+﻿using API_examen.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,7 @@ namespace API_examen.View
         public MainWindow()
         {
             InitializeComponent();
+            //DataContext = vm_MainWindow;
         }
     }
 }
