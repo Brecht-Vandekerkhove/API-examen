@@ -9,5 +9,8 @@ namespace API_examen.ViewModel
 	internal class vm_MainWindow
 	{
 
+		bool test;
+
+		
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using API_examen.ViewModel;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,7 +20,7 @@ namespace API_examen
 		public MainWindow()
 		{
 			InitializeComponent();
-
+			DataContext = new vm_MainWindow();
 			
 		}
 	}
