@@ -1,0 +1,58 @@
+﻿<Window x:Class="API_examen.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:API_examen.View"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <TabControl>
+            <TabItem Header="Search">
+                <Grid Background="#01d099">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="77*"/>
+                        <ColumnDefinition Width="717*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="txtzoek" Text="{Binding Zoek}" BorderBrush="Black" HorizontalAlignment="Left" Margin="377,24,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="325" Grid.Column="1"/>
+                    <Button Command="{Binding SearchCommand}" Content="zoek" BorderBrush="Black" HorizontalAlignment="Left" Margin="397,50,0,0" VerticalAlignment="Top" Grid.Column="1"/>
+                    <CheckBox Content="Vegan" IsChecked="{Binding isVegan}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,50,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <CheckBox Content="Gluten vrij" IsChecked="{Binding geenLactose}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,94,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <CheckBox Content="lactose vrij" IsChecked="{Binding geenGluten}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,70,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <CheckBox Content="Vis vrij " IsChecked="{Binding geenVis}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,116,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <Label Content="zoek een recept op aub" BorderBrush="Black" HorizontalAlignment="Left" Margin="219,20,0,0" VerticalAlignment="Top" Width="158" RenderTransformOrigin="0.53,0.401" Grid.Column="1"/>
+                    <Image HorizontalAlignment="Left"  Height="193" Margin="517,131,0,0" VerticalAlignment="Top" Width="190" Source="/Images/recept.png" Grid.Column="1"/>
+                    <Label Content="Diët voorwaarden:" HorizontalAlignment="Left" Margin="42,24,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Ingrediants">
+                <Grid Background="#01d099">
+                    <TextBlock HorizontalAlignment="Left" Margin="485,0,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Center" Height="386" Width="299"/>
+                    <ListBox ItemsSource="{Binding Ingredients}" d:ItemsSource="{d:SampleData ItemCount=5}" Margin="0,0,516,56"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Recepy">
+                <Grid Background="#01d099">
+                    <TextBlock Text="{Binding Recipe}" HorizontalAlignment="Left" Margin="340,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="396" Width="444"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Nutrition">
+                <Grid Background="#01d099">
+                    <Label Content="Calories:" HorizontalAlignment="Left" Margin="71,66,0,0" VerticalAlignment="Top" Width="58"/>
+                    <Label Content="Carbs:" HorizontalAlignment="Left" Margin="71,97,0,0" VerticalAlignment="Top" Width="46"/>
+                    <Label Content="Suger:" HorizontalAlignment="Left" Margin="71,123,0,0" VerticalAlignment="Top" Width="46"/>
+                    <Label Content="{Binding Calories}" HorizontalAlignment="Left" Margin="153,66,0,0" VerticalAlignment="Top"/>
+                    <Label Content="{Binding Carbs}" HorizontalAlignment="Left" Margin="134,100,0,0" VerticalAlignment="Top" Height="23" Width="114"/>
+                    <Label Content="{Binding suger}" HorizontalAlignment="Left" Margin="125,123,0,0" VerticalAlignment="Top" Height="26" Width="123"/>
+                    <Label Content="Label" HorizontalAlignment="Left" Margin="426,234,0,0" VerticalAlignment="Top"/>
+                    <Image HorizontalAlignment="Left" Height="141" Margin="426,71,0,0" VerticalAlignment="Top" Width="138" Source="{Binding imgFood}"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="creddits
+">
+
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>

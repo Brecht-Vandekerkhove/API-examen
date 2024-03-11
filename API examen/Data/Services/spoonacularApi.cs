@@ -8,15 +8,21 @@ namespace API_examen.Data.Services
 {
     internal class spoonacularApi
     {
-        //public string Title { get; set; }
-        //public List<Ingredient> MissedIngredients { get; set; }
-        //public List<Ingredient> UsedIngredients { get; set; }
+        public List<Recipe> Recipes { get; set; }
 
-        // Nested class for ingredients
-        //public class Ingredient
-        //{
-            //public string Name { get; set; }
-            // Add other properties as needed
-        //}
+        public class Recipe
+        {
+            public string Title { get; set; }
+            public string Instructions { get; set; }
+            public List<Ingredient> ExtendedIngredients { get; set; }
+        }
+
+        public class Ingredient
+        {
+            public string Id { get; set; }
+            public string Name { get; set; }
+            public string Amount { get; set; }
+            public string Unit { get; set; }
+        }
     }
 }
