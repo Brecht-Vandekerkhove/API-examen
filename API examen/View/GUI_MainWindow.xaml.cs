@@ -16,13 +16,14 @@ using System.Windows.Shapes;
 namespace API_examen.View
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for GUI_MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class GUI_MainWindow : Window
     {
-        public MainWindow()
+        public GUI_MainWindow()
         {
             InitializeComponent();
+            DataContext = new vm_MainWindow();
             //DataContext = vm_MainWindow;
         }
     }
