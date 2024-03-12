@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using static API_examen.Data.Services.spoonacularApi;
 
 namespace API_examen.Model
 {
@@ -21,6 +22,57 @@ namespace API_examen.Model
         }
 
         string complexpartUrl = "";
+        public async Task<(List<string> Ingredients, string Recipe)> ComplexSearchAsync(string zoek, bool isVegan, bool geenLactose, bool geenGluten, bool geenVis)
+        {
+            complexpartUrl = "";
+
+            if (isVegan)
+                complexpartUrl += "&diet=vegan";
+
+            string intolerances = "";
+            if (geenLactose)
+                intolerances += "dairy,";
+            if (geenGluten)
+                intolerances += "gluten,";
+            if (geenVis)
+                intolerances += "seafood,";
+
+            if (intolerances != "")
+            {
+                intolerances = intolerances.TrimEnd(','); //Laatste komma weghalen
+                complexpartUrl += "&intolerances=" + intolerances;
+            }
+
+            // Use await to asynchronously get the data
+            spoonacularApi complexResult = await GetData("complex", zoek);
+
+            //spoonacularApi complexResult = GetData("complex", zoek).Result; // If GetData is async, you need to await it or use .Result in a non-async context
+
+            List<string> ingrediënten = new List<string>();
+            string Recept = string.Empty;
+
+            if (complexResult != null && complexResult.Recipes != null && complexResult.Recipes.Any())
+            {
+                var firstRecipe = complexResult.Recipes.First();
+
+                // Extract ingredients
+                foreach (var ingredient in firstRecipe.ExtendedIngredients)
+                {
+                    ingrediënten.Add($"{ingredient.Name} - {ingredient.Amount} {ingredient.Unit}");
+                }
+
+                // Construct the recipe description
+                Recept = $"{firstRecipe.Title}\n\nInstructions:\n{firstRecipe.Instructions}";
+            }
+            else
+            {
+                // Handle the case where no recipes are found or the result is null
+                ingrediënten = new List<string> { "No ingredients found." };
+                Recept = "No recipe found.";
+            }
+
+            return (ingrediënten, Recept);
+        }
         public void ComplexSearch(string zoek, bool isVegan, bool geenLactose, bool geenGluten, bool geenVis, out List<string> ingrediënten, out string Recept)
         {
             complexpartUrl = "";
@@ -86,7 +138,7 @@ namespace API_examen.Model
                             response = await client.GetAsync($"https://api.spoonacular.com/recipes/random?apiKey={ApiKey}&tags={zoekopdracht}&number=3");
                             break;
                         case "complex":
-                            response = await client.GetAsync($"https://api.spoonacular.com/recipes/complexSearch?query=lasagna{complexpartUrl}&apiKey={ApiKey}");
+                            response = await client.GetAsync($"https://api.spoonacular.com/recipes/complexSearch?query={zoekopdracht}{complexpartUrl}&apiKey={ApiKey}");
                             break;
                         default:
                             // If the type is not recognized, return null

@@ -103,16 +103,31 @@ namespace API_examen.ViewModel
         }
 
 
-        private void ZoekCmd(object parameter)
+        private async void ZoekCmd(object parameter)
         {
             //spoonacular.recept(Zoek);
-            List<string> localIngredients;
-            string localRecipe;
+            //List<string> localIngredients;
+            //string localRecipe;
 
-            spoonacular.ComplexSearch(Zoek, isVegan, geenLactose, geenGluten, geenVis, out localIngredients, out localRecipe);
+            //spoonacular.ComplexSearch(Zoek, isVegan, geenLactose, geenGluten, geenVis, out localIngredients, out localRecipe);
 
-            Ingredients = localIngredients;
-            Recipe = localRecipe;
+            //Ingredients = localIngredients;
+            //Recipe = localRecipe;
+
+            try
+            {
+                // Await the result from the asynchronous method and store it in local variables
+                var (localIngredients, localRecipe) = await spoonacular.ComplexSearchAsync(Zoek, isVegan, _geenLactose, _geenGluten, _geenVis);
+
+                // Assign the values to your ViewModel properties
+                Ingredients = localIngredients;
+                Recipe = localRecipe;
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }
