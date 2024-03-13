@@ -1,6 +1,7 @@
 ﻿using API_examen.Data.Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -14,14 +15,16 @@ using static API_examen.Data.Services.spoonacularApi;
 
 namespace API_examen.Model
 {
+
     internal class Spoonacular
     {
-        public void recept(string zoek)
-        {
-            var test = GetData("random recept", zoek);
-        }
+        //public void recept(string zoek)
+        //{
+        //    var test = GetData("random recept", zoek);
+        //}
 
         string complexpartUrl = "";
+
         public async Task<(List<string> Ingredients, string Recipe)> ComplexSearchAsync(string zoek, bool isVegan, bool geenLactose, bool geenGluten, bool geenVis)
         {
             complexpartUrl = "";
@@ -39,89 +42,83 @@ namespace API_examen.Model
 
             if (intolerances != "")
             {
-                intolerances = intolerances.TrimEnd(','); //Laatste komma weghalen
+                intolerances = intolerances.TrimEnd(','); // Remove the last comma
                 complexpartUrl += "&intolerances=" + intolerances;
             }
 
-            // Use await to asynchronously get the data
+            Debug.WriteLine($"Search string: {zoek}, bools {isVegan} {geenLactose} {geenGluten} {geenVis}");
+            Debug.WriteLine($"complexpartUrl: {complexpartUrl}");
+
+            // Perform the complex search
             spoonacularApi complexResult = await GetData("complex", zoek);
 
-            //spoonacularApi complexResult = GetData("complex", zoek).Result; // If GetData is async, you need to await it or use .Result in a non-async context
+            List<string> ingredients = new List<string>();
+            string recipeDescription = string.Empty;
 
-            List<string> ingrediënten = new List<string>();
-            string Recept = string.Empty;
 
+            Debug.WriteLine($"Begin ComplexSearchAsync if-else structure");
             if (complexResult != null && complexResult.Recipes != null && complexResult.Recipes.Any())
             {
-                var firstRecipe = complexResult.Recipes.First();
+                Debug.WriteLine($"Begint de eerste if-route");
 
-                // Extract ingredients
-                foreach (var ingredient in firstRecipe.ExtendedIngredients)
+                // This example assumes you are interested in details for the first recipe
+                var firstRecipeId = complexResult.Recipes.First().Id;
+                Debug.WriteLine($"ReceptID: {firstRecipeId}");
+                DetailedRecipeResponse detailedRecipe = await GetRecipeDetailsAsync(firstRecipeId);
+
+                if (detailedRecipe != null)
                 {
-                    ingrediënten.Add($"{ingredient.Name} - {ingredient.Amount} {ingredient.Unit}");
-                }
+                    Debug.WriteLine($"Begint de tweede if-route");
 
-                // Construct the recipe description
-                Recept = $"{firstRecipe.Title}\n\nInstructions:\n{firstRecipe.Instructions}";
+                    ingredients.AddRange(detailedRecipe.ExtendedIngredients.Select(i => $"{i.Name} - {i.Amount} {i.Unit}"));
+                    recipeDescription = $"{detailedRecipe.Title}\n\nInstructions:\n{detailedRecipe.Instructions}";
+                }
+                else
+                {
+                    Debug.WriteLine($"Tweede else-route");
+                }
             }
             else
             {
-                // Handle the case where no recipes are found or the result is null
-                ingrediënten = new List<string> { "No ingredients found." };
-                Recept = "No recipe found.";
+                Debug.WriteLine($"Eerste else-route");
+
+                MessageBox.Show($"Geen recipe found.\r\nChange the input!", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                ingredients = new List<string> { "No ingredients found." };
+                recipeDescription = "No recipe found.";
             }
 
-            return (ingrediënten, Recept);
+            return (ingredients, recipeDescription);
         }
-        public void ComplexSearch(string zoek, bool isVegan, bool geenLactose, bool geenGluten, bool geenVis, out List<string> ingrediënten, out string Recept)
+
+        public async Task<DetailedRecipeResponse> GetRecipeDetailsAsync(int recipeId)
         {
-            complexpartUrl = "";
-
-            if (isVegan)
-                complexpartUrl += "&diet=vegan";
-
-            string intolerances = "";
-            if (geenLactose)
-                intolerances += "dairy,";
-            if (geenGluten)
-                intolerances += "gluten,";
-            if (geenVis)
-                intolerances += "seafood,";
-
-            if (intolerances != "")
+            using (HttpClient client = new HttpClient())
             {
-                intolerances = intolerances.TrimEnd(','); //Laatste komma weghalen
-                complexpartUrl += "&intolerances=" + intolerances;
-            }
+                string url = $"https://api.spoonacular.com/recipes/{recipeId}/information?apiKey={ApiKey2}";
+                HttpResponseMessage response = await client.GetAsync(url);
+                Debug.WriteLine($"Status Code: {response.StatusCode}");
 
-            spoonacularApi complexResult = GetData("complex", zoek).Result; // If GetData is async, you need to await it or use .Result in a non-async context
-
-            ingrediënten = new List<string>();
-            Recept = string.Empty;
-
-            if (complexResult != null && complexResult.Recipes != null && complexResult.Recipes.Any())
-            {
-                var firstRecipe = complexResult.Recipes.First();
-
-                // Extract ingredients
-                foreach (var ingredient in firstRecipe.ExtendedIngredients)
+                if (response.IsSuccessStatusCode)
                 {
-                    ingrediënten.Add($"{ingredient.Name} - {ingredient.Amount} {ingredient.Unit}");
-                }
+                    string json = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine($"JSON Response: {json}");
 
-                // Construct the recipe description
-                Recept = $"{firstRecipe.Title}\n\nInstructions:\n{firstRecipe.Instructions}";
+                    var detailedRecipe = JsonSerializer.Deserialize<DetailedRecipeResponse>(json);
+
+                    return detailedRecipe;
+                }
+                else
+                {
+                    Debug.WriteLine($"Error: {response.ReasonPhrase}");
+                }
             }
-            else
-            {
-                // Handle the case where no recipes are found or the result is null
-                ingrediënten = new List<string> { "No ingredients found." };
-                Recept = "No recipe found.";
-            }
+            return null;
         }
 
 
         private const string ApiKey = "1c312f036b1c45e7b5a00ec292622ca3";
+        private const string ApiKey2 = "355943b82e6c444a8803d0b07ac85a84";
 
         public async Task<spoonacularApi> GetData(string type, string zoekopdracht)
         {
@@ -130,20 +127,24 @@ namespace API_examen.Model
                 //HttpClient client = new HttpClient();
                 using (HttpClient client = new HttpClient())
                 {
-                    HttpResponseMessage response = null;
+                    string urlApi = string.Empty;
 
                     switch (type)
                     {
                         case "random recept":
-                            response = await client.GetAsync($"https://api.spoonacular.com/recipes/random?apiKey={ApiKey}&tags={zoekopdracht}&number=3");
+                            urlApi = $"https://api.spoonacular.com/recipes/random?apiKey={ApiKey}&tags={zoekopdracht}&number=3";
                             break;
                         case "complex":
-                            response = await client.GetAsync($"https://api.spoonacular.com/recipes/complexSearch?query={zoekopdracht}{complexpartUrl}&apiKey={ApiKey}");
+                            urlApi = $"https://api.spoonacular.com/recipes/complexSearch?query={zoekopdracht}{complexpartUrl}&apiKey={ApiKey}";
                             break;
                         default:
                             // If the type is not recognized, return null
                             return null;
                     }
+
+                    Debug.WriteLine(urlApi);
+                    HttpResponseMessage response = await client.GetAsync(urlApi);
+
 
                     if (response.IsSuccessStatusCode)
                     {

@@ -17,8 +17,8 @@
                     <TextBox x:Name="txtzoek" Text="{Binding Zoek}" BorderBrush="Black" HorizontalAlignment="Left" Margin="377,24,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="325" Grid.Column="1"/>
                     <Button Command="{Binding SearchCommand}" Content="zoek" BorderBrush="Black" HorizontalAlignment="Left" Margin="397,50,0,0" VerticalAlignment="Top" Grid.Column="1"/>
                     <CheckBox Content="Vegan" IsChecked="{Binding isVegan}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,50,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
-                    <CheckBox Content="Gluten vrij" IsChecked="{Binding geenLactose}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,94,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
-                    <CheckBox Content="lactose vrij" IsChecked="{Binding geenGluten}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,70,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <CheckBox Content="Gluten vrij" IsChecked="{Binding geenGluten}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,94,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                    <CheckBox Content="lactose vrij" IsChecked="{Binding geenLactose}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,70,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
                     <CheckBox Content="Vis vrij " IsChecked="{Binding geenVis}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,116,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
                     <Label Content="zoek een recept op aub" BorderBrush="Black" HorizontalAlignment="Left" Margin="219,20,0,0" VerticalAlignment="Top" Width="158" RenderTransformOrigin="0.53,0.401" Grid.Column="1"/>
                     <Image HorizontalAlignment="Left"  Height="193" Margin="517,131,0,0" VerticalAlignment="Top" Width="190" Source="/Images/recept.png" Grid.Column="1"/>

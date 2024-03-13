@@ -2,6 +2,7 @@
 using API_examen.ViewModel.Commands;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -105,6 +106,7 @@ namespace API_examen.ViewModel
 
         private async void ZoekCmd(object parameter)
         {
+            Debug.WriteLine($"Zoek gestart met {Zoek}");
             //spoonacular.recept(Zoek);
             //List<string> localIngredients;
             //string localRecipe;
