@@ -1,6 +1,7 @@
 ﻿using API_examen.Model;
 using API_examen.ViewModel.Commands;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,6 +14,20 @@ namespace API_examen.ViewModel
 {
 	internal class vm_MainWindow : vmBase
 	{
+        #region Constructor en initialisatiestatements
+        public ICommand SearchCommand { get; }
+        private Spoonacular spoonacular;
+        private CalorieNinjas calorieNinjas;
+        public vm_MainWindow()
+        {
+            SearchCommand = new RelayCommand(ZoekCmd);
+            spoonacular = new Spoonacular();
+            calorieNinjas = new CalorieNinjas();
+        }
+        #endregion
+
+        #region Binding Elementen
+
         private string _zoek;
         public string Zoek { get => _zoek; set { if (_zoek != value) { _zoek = value; OnPropertyChange(nameof(Zoek)); } } }
 
@@ -27,13 +42,13 @@ namespace API_examen.ViewModel
             }
         }
 
-        private string _recipe;
+        private string _recept;
         public string Recipe
         {
-            get => _recipe;
+            get => _recept;
             set
             {
-                _recipe = value;
+                _recept = value;
                 OnPropertyChange(nameof(Recipe));
             }
         }
@@ -94,15 +109,70 @@ namespace API_examen.ViewModel
             }
         }
 
-
-        public ICommand SearchCommand { get; }
-        private Spoonacular spoonacular;
-        public vm_MainWindow()
+        private string _receptTitel;
+        public string ReceptTitel
         {
-            SearchCommand = new RelayCommand(ZoekCmd);
-            spoonacular = new Spoonacular();
+            get => _receptTitel;
+            set
+            {
+                if (_receptTitel != value)
+                {
+                    _receptTitel = value;
+                    OnPropertyChange(nameof(ReceptTitel));
+                }
+            }
         }
 
+        //public string Recept
+        //{
+        //    get => _recept;
+        //    set
+        //    {
+        //        if (_recept != value)
+        //        {
+        //            _recept = value;
+        //            // Assume the title is the first line of the recipe description
+        //            ReceptTitel = value.Split('\n').FirstOrDefault()?.Trim();
+        //            OnPropertyChange(nameof(Recept));
+        //        }
+        //    }
+        //}
+
+        //Code voor opzoeken ingrediënten van de listbox
+        #region Binding voor opzoeken ingrediënten
+        private string _selectedIngredient;
+        public string SelectedIngredient
+        {
+            get => _selectedIngredient;
+            set
+            {
+                if (_selectedIngredient != value)
+                {
+                    _selectedIngredient = value;
+                    OnPropertyChange(nameof(SelectedIngredient));
+
+                    GetIngredient();
+                }
+            }
+        }
+
+        private string _ingredientInfo;
+        public string IngredientInfo
+        {
+            get => _ingredientInfo;
+            set
+            {
+                if (_ingredientInfo != value)
+                {
+                    _ingredientInfo = value;
+                    OnPropertyChange(nameof(IngredientInfo));
+
+                    GetIngredient();
+                }
+            }
+        }
+        #endregion
+        #endregion
 
         private async void ZoekCmd(object parameter)
         {
@@ -119,16 +189,27 @@ namespace API_examen.ViewModel
             try
             {
                 // Await the result from the asynchronous method and store it in local variables
-                var (localIngredients, localRecipe) = await spoonacular.ComplexSearchAsync(Zoek, isVegan, _geenLactose, _geenGluten, _geenVis);
+                var (localIngredients, localRecipe, localRecipeTitel) = await spoonacular.ComplexSearchAsync(Zoek, isVegan, _geenLactose, _geenGluten, _geenVis);
 
                 // Assign the values to your ViewModel properties
                 Ingredients = localIngredients;
                 Recipe = localRecipe;
+                ReceptTitel = localRecipeTitel;
             }
             catch (Exception ex)
             {
                 // Handle exceptions
                 MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void GetIngredient()
+        {
+            if (!string.IsNullOrEmpty(SelectedIngredient))
+            {
+                Debug.WriteLine($"Opzoeken info: {SelectedIngredient}");
+
+                IngredientInfo = await calorieNinjas.GetIngredientInfo(SelectedIngredient);
             }
         }
     }

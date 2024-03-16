@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Security.Policy;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using static API_examen.Data.Services.spoonacularApi;
@@ -24,8 +25,7 @@ namespace API_examen.Model
         //}
 
         string complexpartUrl = "";
-
-        public async Task<(List<string> Ingredients, string Recipe)> ComplexSearchAsync(string zoek, bool isVegan, bool geenLactose, bool geenGluten, bool geenVis)
+        public async Task<(List<string> Ingredients, string Recipe, string RecipeTitel)> ComplexSearchAsync(string zoek, bool isVegan, bool geenLactose, bool geenGluten, bool geenVis)
         {
             complexpartUrl = "";
 
@@ -54,6 +54,7 @@ namespace API_examen.Model
 
             List<string> ingredients = new List<string>();
             string recipeDescription = string.Empty;
+            string receptTitel = string.Empty;
 
 
             Debug.WriteLine($"Begin ComplexSearchAsync if-else structure");
@@ -70,8 +71,22 @@ namespace API_examen.Model
                 {
                     Debug.WriteLine($"Begint de tweede if-route");
 
-                    ingredients.AddRange(detailedRecipe.ExtendedIngredients.Select(i => $"{i.Name} - {i.Amount} {i.Unit}"));
-                    recipeDescription = $"{detailedRecipe.Title}\n\nInstructions:\n{detailedRecipe.Instructions}";
+                    MessageBox.Show($"A recipe has been found.\r\nU can now view the ingredients and recipe for {detailedRecipe.Title}", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                    //ingredients.AddRange(detailedRecipe.ExtendedIngredients.Select(i => $"{i.Name} - {i.Amount} {i.Unit}"));
+                    //recipeDescription = $"{detailedRecipe.Title}\n\nInstructions:\n{CleanHtmlContent(detailedRecipe.Instructions)}";
+                    //ingredients.AddRange(detailedRecipe.ExtendedIngredients.Select(i => $"{i.Amount} {i.Unit} {i.Name}"));
+                    foreach (var i in detailedRecipe.ExtendedIngredients)
+                    {
+                        string ingredientString = $"{i.Amount} {i.Unit} {i.Name}";
+                        if (!ingredients.Contains(ingredientString))
+                        {
+                            ingredients.Add(ingredientString);
+                        }
+                    }
+
+                    recipeDescription = $"Instructions:\n{CleanHtmlContent(detailedRecipe.Instructions)}";
+                    receptTitel = detailedRecipe.Title;
+                    Debug.WriteLine($"Found {receptTitel}");
                 }
                 else
                 {
@@ -88,9 +103,27 @@ namespace API_examen.Model
                 recipeDescription = "No recipe found.";
             }
 
-            return (ingredients, recipeDescription);
+            return (ingredients, recipeDescription, receptTitel);
         }
+        private string CleanHtmlContent(string html)
+        {
+            if (string.IsNullOrWhiteSpace(html))
+                return string.Empty;
 
+            // <li> aanpassen
+            string withBullets = Regex.Replace(html, @"<li>(.*?)</li>", m => $"- {m.Groups[1].Value}\n");
+
+            // Overige HTML tags verwijderen
+            string withoutHtml = Regex.Replace(withBullets, @"<[^>]+>", string.Empty);
+
+            // Decoderen HTML
+            string decoded = System.Net.WebUtility.HtmlDecode(withoutHtml);
+
+            return decoded.Trim();
+        }
+        #region Api calls
+        private const string ApiKey = "1c312f036b1c45e7b5a00ec292622ca3";
+        private const string ApiKey2 = "355943b82e6c444a8803d0b07ac85a84";
         public async Task<DetailedRecipeResponse> GetRecipeDetailsAsync(int recipeId)
         {
             using (HttpClient client = new HttpClient())
@@ -116,10 +149,6 @@ namespace API_examen.Model
             return null;
         }
 
-
-        private const string ApiKey = "1c312f036b1c45e7b5a00ec292622ca3";
-        private const string ApiKey2 = "355943b82e6c444a8803d0b07ac85a84";
-
         public async Task<spoonacularApi> GetData(string type, string zoekopdracht)
         {
             try
@@ -127,22 +156,23 @@ namespace API_examen.Model
                 //HttpClient client = new HttpClient();
                 using (HttpClient client = new HttpClient())
                 {
-                    string urlApi = string.Empty;
+                    //string urlApi = string.Empty;
 
-                    switch (type)
-                    {
-                        case "random recept":
-                            urlApi = $"https://api.spoonacular.com/recipes/random?apiKey={ApiKey}&tags={zoekopdracht}&number=3";
-                            break;
-                        case "complex":
-                            urlApi = $"https://api.spoonacular.com/recipes/complexSearch?query={zoekopdracht}{complexpartUrl}&apiKey={ApiKey}";
-                            break;
-                        default:
-                            // If the type is not recognized, return null
-                            return null;
-                    }
+                    //switch (type)
+                    //{
+                    //    case "random recept":
+                    //        urlApi = $"https://api.spoonacular.com/recipes/random?apiKey={ApiKey}&tags={zoekopdracht}&number=3";
+                    //        break;
+                    //    case "complex":
+                    //        urlApi = $"https://api.spoonacular.com/recipes/complexSearch?query={zoekopdracht}{complexpartUrl}&apiKey={ApiKey}";
+                    //        break;
+                    //    default:
+                    //        // If the type is not recognized, return null
+                    //        return null;
+                    //}
+                    string urlApi = $"https://api.spoonacular.com/recipes/complexSearch?query={zoekopdracht}{complexpartUrl}&apiKey={ApiKey}";
 
-                    Debug.WriteLine(urlApi);
+                    //Debug.WriteLine(urlApi);
                     HttpResponseMessage response = await client.GetAsync(urlApi);
 
 
@@ -162,28 +192,30 @@ namespace API_examen.Model
                     else if (response.StatusCode == HttpStatusCode.NotFound)
                     {
                         // Recept niet gevonden
-                        Console.WriteLine("Recept niet gevonden.");
+                        Debug.WriteLine("Recept niet gevonden.");
                     }
                     else
                     {
-                        // Andere fout bij het ophalen van gegevens, toon foutmelding en voer reset uit
-                        Console.WriteLine($"Fout: {response.ReasonPhrase}");
-                        MessageBox.Show($"Fout: {response.ReasonPhrase}", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
+                        // Andere fout bij het ophalen van gegevens, toon foutmelding
+                        Debug.WriteLine($"Error while retrieving data: {response.ReasonPhrase}");
+                        MessageBox.Show($"Error while retrieving data: {response.ReasonPhrase}", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
             catch (HttpRequestException)
             {
-                Console.WriteLine("Fout: kon geen verbinding maken met api.");
-                MessageBox.Show("Fout: kon geen verbinding maken met api.", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine("Error: couldn't get a connection with api.");
+                //MessageBox.Show("Fout: kon geen verbinding maken met api.", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.WriteLine("Fout: unkown error.");
-                MessageBox.Show("Fout: unkown error.", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine($"Error GetIngredientInfo: {ex.Message}");
+                //MessageBox.Show("Fout: unkown error.", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             return null;
         }
+        #endregion
+
     }
 }
