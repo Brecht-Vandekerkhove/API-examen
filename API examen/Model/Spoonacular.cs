@@ -23,11 +23,12 @@ namespace API_examen.Model
         //{
         //    var test = GetData("random recept", zoek);
         //}
-
         string complexpartUrl = "";
-        public async Task<(List<string> Ingredients, string Recipe, string RecipeTitel)> ComplexSearchAsync(
+        private const string ApiKey = "1c312f036b1c45e7b5a00ec292622ca3";
+        private const string ApiKey2 = "355943b82e6c444a8803d0b07ac85a84";
+        public async Task<(Dictionary<string, int>, List<string>)> ComplexSearchDictionary(
             string zoek,
-            bool isVegan ,
+            bool isVegan,
             bool isVegetarian,
             bool isKetogenic,
             bool isPrimal,
@@ -66,82 +67,60 @@ namespace API_examen.Model
 
             Debug.WriteLine($"Search string: {zoek}, diet and intolerances {complexpartUrl}");
 
-            //complexpartUrl = "";
-
-            //if (isVegan)
-            //    complexpartUrl += "&diet=vegan";
-
-            //string intolerances = "";
-            //if (geenLactose)
-            //    intolerances += "dairy,";
-            //if (geenGluten)
-            //    intolerances += "gluten,";
-            //if (geenVis)
-            //    intolerances += "seafood,";
-
-            //if (intolerances != "")
-            //{
-            //    intolerances = intolerances.TrimEnd(','); // Remove the last comma
-            //    complexpartUrl += "&intolerances=" + intolerances;
-            //}
-
-            //Debug.WriteLine($"Search string: {zoek}, bools {isVegan} {geenLactose} {geenGluten} {geenVis}");
-            //Debug.WriteLine($"complexpartUrl: {complexpartUrl}");
-
             // Perform the complex search
-            spoonacularApi complexResult = await GetData("complex", zoek);
+            spoonacularApi complexResult = await GetData(zoek);
+            Dictionary<string, int> recepten = new Dictionary<string, int>();
+            List<string> receptenTitels = new List<string>();
 
-            List<string> ingredients = new List<string>();
-            string recipeDescription = string.Empty;
-            string receptTitel = string.Empty;
-
-
-            Debug.WriteLine($"Begin ComplexSearchAsync if-else structure");
+            Debug.WriteLine($"Begin ComplexSearchDictionary if-else structure");
             if (complexResult != null && complexResult.Recipes != null && complexResult.Recipes.Any())
             {
-                Debug.WriteLine($"Begint de eerste if-route");
+                MessageBox.Show($"Some recipes have been found.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                // This example assumes you are interested in details for the first recipe
-                var firstRecipeId = complexResult.Recipes.First().Id;
-                Debug.WriteLine($"ReceptID: {firstRecipeId}");
-                DetailedRecipeResponse detailedRecipe = await GetRecipeDetailsAsync(firstRecipeId);
-
-                if (detailedRecipe != null)
+                foreach (var recipe in complexResult.Recipes)
                 {
-                    Debug.WriteLine($"Begint de tweede if-route");
-
-                    MessageBox.Show($"A recipe has been found.\r\nU can now view the ingredients and recipe for {detailedRecipe.Title}", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-                    //ingredients.AddRange(detailedRecipe.ExtendedIngredients.Select(i => $"{i.Name} - {i.Amount} {i.Unit}"));
-                    //recipeDescription = $"{detailedRecipe.Title}\n\nInstructions:\n{CleanHtmlContent(detailedRecipe.Instructions)}";
-                    //ingredients.AddRange(detailedRecipe.ExtendedIngredients.Select(i => $"{i.Amount} {i.Unit} {i.Name}"));
-                    foreach (var i in detailedRecipe.ExtendedIngredients)
-                    {
-                        string ingredientString = $"{i.Amount} {i.Unit} {i.Name}";
-                        if (!ingredients.Contains(ingredientString))
-                        {
-                            ingredients.Add(ingredientString);
-                        }
-                    }
-
-                    recipeDescription = $"Instructions:\n{CleanHtmlContent(detailedRecipe.Instructions)}";
-                    receptTitel = detailedRecipe.Title;
-                    Debug.WriteLine($"Found {receptTitel}");
-                }
-                else
-                {
-                    Debug.WriteLine($"Tweede else-route");
+                    recepten.Add(recipe.Title, recipe.Id);
+                    receptenTitels.Add(recipe.Title);
                 }
             }
             else
             {
-                Debug.WriteLine($"Eerste else-route");
-
+                Debug.WriteLine($"Else-route");
                 MessageBox.Show($"Geen recipe found.\r\nChange the input!", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
 
+            return (recepten, receptenTitels);
+        }
+
+        public async Task<(List<string> Ingredients, string Recipe, string RecipeTitel)> RecipeData(int id)
+        {
+            List<string> ingredients = new List<string>();
+            string recipeDescription = string.Empty;
+            string receptTitel = string.Empty;
+
+            DetailedRecipeResponse detailedRecipe = await GetRecipeDetailsAsync(id);
+            if (detailedRecipe != null)
+            {
+                receptTitel = detailedRecipe.Title;
+                Debug.WriteLine($"Found {receptTitel}");
+                recipeDescription = $"Instructions:\n{CleanHtmlContent(detailedRecipe.Instructions)}";
+
+                foreach (var i in detailedRecipe.ExtendedIngredients)
+                {
+                    string ingredientString = $"{i.Amount} {i.Unit} {i.Name}";
+                    if (!ingredients.Contains(ingredientString))
+                    {
+                        ingredients.Add(ingredientString);
+                    }
+                }
+                MessageBox.Show($"U can now view the ingredients and recipe for {receptTitel}", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                Debug.WriteLine($"DetailedRecipe = null in RecipeData()");
                 ingredients = new List<string> { "No ingredients found." };
                 recipeDescription = "No recipe found.";
             }
-
             return (ingredients, recipeDescription, receptTitel);
         }
         private string CleanHtmlContent(string html)
@@ -161,8 +140,7 @@ namespace API_examen.Model
             return decoded.Trim();
         }
         #region Api calls
-        private const string ApiKey = "1c312f036b1c45e7b5a00ec292622ca3";
-        private const string ApiKey2 = "355943b82e6c444a8803d0b07ac85a84";
+
         public async Task<DetailedRecipeResponse> GetRecipeDetailsAsync(int recipeId)
         {
             using (HttpClient client = new HttpClient())
@@ -188,7 +166,7 @@ namespace API_examen.Model
             return null;
         }
 
-        public async Task<spoonacularApi> GetData(string type, string zoekopdracht)
+        public async Task<spoonacularApi> GetData(string zoekopdracht)
         {
             try
             {

@@ -9,18 +9,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using static API_examen.Data.Services.spoonacularApi;
 
 namespace API_examen.ViewModel
 {
 	internal class vm_MainWindow : vmBase
 	{
         #region Constructor en initialisatiestatements
+        Dictionary<string, int> receptenDictionary;
         public ICommand zoekCommand { get; }
         public ICommand servingSizeCmd { get; }
         private Spoonacular spoonacular;
         private CalorieNinjas calorieNinjas;
         public vm_MainWindow()
         {
+            receptenDictionary = new Dictionary<string, int>();
             zoekCommand = new RelayCommand(ZoekCmd);
             servingSizeCmd = new RelayCommand(ServingSizeCmd);
             spoonacular = new Spoonacular();
@@ -35,6 +38,33 @@ namespace API_examen.ViewModel
 
         private string _serving;
         public string Serving { get => _serving; set { if (_serving != value) { _serving = value; OnPropertyChange(nameof(Serving)); } } }
+        
+        private List<string> _ReceptenTitels;
+        public List<string> ReceptenTitels
+        {
+            get => _ReceptenTitels;
+            set
+            {
+                _ReceptenTitels = value;
+                OnPropertyChange(nameof(ReceptenTitels));
+            }
+        }
+
+        private string _selectedRecept;
+        public string SelectedRecept
+        {
+            get => _selectedRecept;
+            set
+            {
+                if (_selectedRecept != value)
+                {
+                    _selectedRecept = value;
+                    OnPropertyChange(nameof(SelectedRecept));
+
+                    GetRecipeData();
+                }
+            }
+        }
 
         private List<string> _ingredients;
         public List<string> Ingredients
@@ -250,8 +280,25 @@ namespace API_examen.ViewModel
 
             try
             {
-                // Await the result from the asynchronous method and store it in local variables
-                var (localIngredients, localRecipe, localRecipeTitel) = await spoonacular.ComplexSearchAsync(
+                //// Await the result from the asynchronous method and store it in local variables
+                //var (localIngredients, localRecipe, localRecipeTitel) = await spoonacular.ComplexSearchAsync(
+                //    Zoek,
+                //    isVegan,
+                //    isVegetarian,
+                //    isKetogenic,
+                //    isPrimal,
+                //    dairyIntolerance,
+                //    glutenIntolerance,
+                //    seafoodIntolerance,
+                //    peanutIntolerance
+                //    );
+
+                //// Assign the values to your ViewModel properties
+                //Ingredients = localIngredients;
+                //Recipe = localRecipe;
+                //ReceptTitel = localRecipeTitel;
+
+                var (localReceptenDictionary, localReceptenTitels) = await spoonacular.ComplexSearchDictionary(
                     Zoek,
                     isVegan,
                     isVegetarian,
@@ -262,16 +309,36 @@ namespace API_examen.ViewModel
                     seafoodIntolerance,
                     peanutIntolerance
                     );
-
-                // Assign the values to your ViewModel properties
-                Ingredients = localIngredients;
-                Recipe = localRecipe;
-                ReceptTitel = localRecipeTitel;
+                receptenDictionary = localReceptenDictionary;
+                ReceptenTitels = localReceptenTitels;
             }
             catch (Exception ex)
             {
                 // Handle exceptions
                 MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void GetRecipeData()
+        {
+            if (!string.IsNullOrEmpty(SelectedRecept))
+            {
+                Debug.WriteLine($"Opzoeken info: {SelectedRecept}");
+
+                if (receptenDictionary.TryGetValue(SelectedRecept, out int id))
+                {
+                    Debug.WriteLine($"The ID for '{SelectedRecept}' is {id}.");
+
+                    var (localIngredients, localRecipe, localRecipeTitel) = await spoonacular.RecipeData(id);
+
+                    Ingredients = localIngredients;
+                    Recipe = localRecipe;
+                    ReceptTitel = localRecipeTitel;
+                }
+                else
+                {
+                    Debug.WriteLine("Recipe title not found.");
+                }
             }
         }
 
