@@ -15,12 +15,14 @@ namespace API_examen.ViewModel
 	internal class vm_MainWindow : vmBase
 	{
         #region Constructor en initialisatiestatements
-        public ICommand SearchCommand { get; }
+        public ICommand zoekCommand { get; }
+        public ICommand servingSizeCmd { get; }
         private Spoonacular spoonacular;
         private CalorieNinjas calorieNinjas;
         public vm_MainWindow()
         {
-            SearchCommand = new RelayCommand(ZoekCmd);
+            zoekCommand = new RelayCommand(ZoekCmd);
+            servingSizeCmd = new RelayCommand(ServingSizeCmd);
             spoonacular = new Spoonacular();
             calorieNinjas = new CalorieNinjas();
         }
@@ -30,6 +32,9 @@ namespace API_examen.ViewModel
 
         private string _zoek;
         public string Zoek { get => _zoek; set { if (_zoek != value) { _zoek = value; OnPropertyChange(nameof(Zoek)); } } }
+
+        private string _serving;
+        public string Serving { get => _serving; set { if (_serving != value) { _serving = value; OnPropertyChange(nameof(Serving)); } } }
 
         private List<string> _ingredients;
         public List<string> Ingredients
@@ -267,6 +272,29 @@ namespace API_examen.ViewModel
             {
                 // Handle exceptions
                 MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void ServingSizeCmd(object parameter)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(SelectedIngredient))
+                {
+                    string tempIngredient = String.Join(" ", SelectedIngredient.Split(' ').Skip(2));
+                    if (!string.IsNullOrEmpty(Serving) && double.TryParse(Serving, out double servingAmount))
+                    {
+                        SelectedIngredient = $"{servingAmount} g {tempIngredient}";
+                    }
+                    else if (string.IsNullOrEmpty(Serving)) SelectedIngredient = $"100 g {tempIngredient}";
+                    else MessageBox.Show($"Incorrect input!", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                    IngredientInfo = await calorieNinjas.GetIngredientInfo(SelectedIngredient);
+                }
+            }
+            catch
+            {
+
             }
         }
 
