@@ -10,10 +10,6 @@
         <TabControl>
             <TabItem Header="Search">
                 <Grid Background="#8CC34B">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="71*"/>
-                        <ColumnDefinition Width="723*"/>
-                    </Grid.ColumnDefinitions>
                     <TextBox x:Name="txtzoek" Text="{Binding Zoek}" BorderBrush="Black" HorizontalAlignment="Left" Margin="377,24,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="325" Grid.Column="1" Height="18"/>
                     <Button Command="{Binding zoekCommand}" Content="Search" BorderBrush="Black" HorizontalAlignment="Left" Margin="397,50,0,0" VerticalAlignment="Top" Grid.Column="1" Height="20" Width="39"/>
                     <ListBox Background="#8CC34B" ItemsSource="{Binding ReceptenTitels}"  SelectedItem="{Binding SelectedRecept}" Grid.Column="1" d:ItemsSource="{d:SampleData ItemCount=5}" Margin="377,85,10,10" BorderThickness="0,0,0,0"/>
@@ -26,7 +22,6 @@
                     <CheckBox Content="Seafood" IsChecked="{Binding seafoodIntolerance}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,202,0,0" VerticalAlignment="Top" Height="15" Grid.ColumnSpan="2"/>
                     <CheckBox Content="Peanut" IsChecked="{Binding peanutIntolerance}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,222,0,0" VerticalAlignment="Top" Height="15" Grid.ColumnSpan="2"/>
                     <Label Content="Look up recipe:" BorderBrush="Black" HorizontalAlignment="Left" Margin="282,20,0,0" VerticalAlignment="Top" Width="95" RenderTransformOrigin="0.53,0.401" Grid.Column="1" Height="26"/>
-                    <Image HorizontalAlignment="Left"  Height="192" Margin="136,210,0,0" VerticalAlignment="Top" Width="190" Source="/Images/recept.png" Grid.Column="1"/>
                     <Label Content="Dietary conditions:" HorizontalAlignment="Left" Margin="42,24,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="26" Width="109"/>
                     <Label Content="Intolerances:" HorizontalAlignment="Left" Margin="42,131,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="26" Width="109" RenderTransformOrigin="0.657,0.065"/>
                 </Grid>

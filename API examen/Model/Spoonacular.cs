@@ -1,31 +1,23 @@
 ﻿using API_examen.Data.Services;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
-using System.Security.Policy;
-using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
-using static API_examen.Data.Services.spoonacularApi;
 
 namespace API_examen.Model
 {
 
     internal class Spoonacular
     {
-        //public void recept(string zoek)
-        //{
-        //    var test = GetData("random recept", zoek);
-        //}
+        #region initialisatiestatements
         string complexpartUrl = "";
         private const string ApiKey = "1c312f036b1c45e7b5a00ec292622ca3";
+        //2de ApiKey want rate-limit per ApiKey van 1 request per seconde
         private const string ApiKey2 = "355943b82e6c444a8803d0b07ac85a84";
+        #endregion
+        #region Methoden exclusief api-calls
         public async Task<(Dictionary<string, int>, List<string>)> ComplexSearchDictionary(
             string zoek,
             bool isVegan,
@@ -67,16 +59,17 @@ namespace API_examen.Model
 
             Debug.WriteLine($"Search string: {zoek}, diet and intolerances {complexpartUrl}");
 
-            // Perform the complex search
+            // Data ophalen met GetData (api-call)
             spoonacularApi complexResult = await GetData(zoek);
             Dictionary<string, int> recepten = new Dictionary<string, int>();
             List<string> receptenTitels = new List<string>();
 
-            Debug.WriteLine($"Begin ComplexSearchDictionary if-else structure");
+            Debug.WriteLine($"Start ComplexSearchDictionary if-else structure");
             if (complexResult != null && complexResult.Recipes != null && complexResult.Recipes.Any())
             {
                 MessageBox.Show($"Some recipes have been found.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
 
+                //Stel lijst en dictionary op met titels + id van relevante recepten
                 foreach (var recipe in complexResult.Recipes)
                 {
                     recepten.Add(recipe.Title, recipe.Id);
@@ -98,13 +91,17 @@ namespace API_examen.Model
             string recipeDescription = string.Empty;
             string receptTitel = string.Empty;
 
+            //Receptgegevens opvragen op basis van id
             DetailedRecipeResponse detailedRecipe = await GetRecipeDetailsAsync(id);
             if (detailedRecipe != null)
             {
                 receptTitel = detailedRecipe.Title;
                 Debug.WriteLine($"Found {receptTitel}");
+
+                //receptbeschrijving soms in html (<li> ect) -> html elementen verwijderen)
                 recipeDescription = $"Instructions:\n{CleanHtmlContent(detailedRecipe.Instructions)}";
 
+                //Voor elk ingrediënt een string opstellen in de vorm van "100 g brood"
                 foreach (var i in detailedRecipe.ExtendedIngredients)
                 {
                     string ingredientString = $"{i.Amount} {i.Unit} {i.Name}";
@@ -139,7 +136,53 @@ namespace API_examen.Model
 
             return decoded.Trim();
         }
-        #region Api calls
+        #endregion
+        #region methoden met api-calls
+        public async Task<spoonacularApi> GetData(string zoekopdracht)
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    string urlApi = $"https://api.spoonacular.com/recipes/complexSearch?query={zoekopdracht}{complexpartUrl}&apiKey={ApiKey}";
+
+                    HttpResponseMessage response = await client.GetAsync(urlApi);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // Lees api response
+                        var json = await response.Content.ReadAsStringAsync();
+                        var SpoonacularApi = JsonSerializer.Deserialize<spoonacularApi>(json);
+
+                        // Als alles goed gaat, retourneer gedeserialiseerde json
+                        return SpoonacularApi;
+                    }
+                    //Als de API geen overeenkomstig recept vindt,
+                    //retourneert het een 404 (Not Found) HTTP-statuscode.
+                    //In dit geval zou EnsureSuccessStatusCode() een HttpRequestException veroorzaken.
+                    else if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        Debug.WriteLine("Recept niet gevonden.");
+                    }
+                    else
+                    {
+                        // Andere fout bij het ophalen van gegevens, toon foutmelding
+                        Debug.WriteLine($"Error while retrieving data: {response.ReasonPhrase}");
+                        MessageBox.Show($"Error while retrieving data: {response.ReasonPhrase}", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            catch (HttpRequestException)
+            {
+                Debug.WriteLine("Error: couldn't get a connection with api.");
+                MessageBox.Show("Fout: kon geen verbinding maken met api.", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error GetIngredientInfo: {ex.Message}");
+                MessageBox.Show("Fout: unkown error.", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            return null;
+        }
 
         public async Task<DetailedRecipeResponse> GetRecipeDetailsAsync(int recipeId)
         {
@@ -166,73 +209,6 @@ namespace API_examen.Model
             return null;
         }
 
-        public async Task<spoonacularApi> GetData(string zoekopdracht)
-        {
-            try
-            {
-                //HttpClient client = new HttpClient();
-                using (HttpClient client = new HttpClient())
-                {
-                    //string urlApi = string.Empty;
-
-                    //switch (type)
-                    //{
-                    //    case "random recept":
-                    //        urlApi = $"https://api.spoonacular.com/recipes/random?apiKey={ApiKey}&tags={zoekopdracht}&number=3";
-                    //        break;
-                    //    case "complex":
-                    //        urlApi = $"https://api.spoonacular.com/recipes/complexSearch?query={zoekopdracht}{complexpartUrl}&apiKey={ApiKey}";
-                    //        break;
-                    //    default:
-                    //        // If the type is not recognized, return null
-                    //        return null;
-                    //}
-                    string urlApi = $"https://api.spoonacular.com/recipes/complexSearch?query={zoekopdracht}{complexpartUrl}&apiKey={ApiKey}";
-
-                    //Debug.WriteLine(urlApi);
-                    HttpResponseMessage response = await client.GetAsync(urlApi);
-
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        // Lees api response
-                        var json = await response.Content.ReadAsStringAsync();
-                        var SpoonacularApi = JsonSerializer.Deserialize<spoonacularApi>(json);
-
-                        // Als alles goed gaat, genereer output
-                        //GenerateOutput(SpoonacularApi);
-                        return SpoonacularApi;
-                    }
-                    //Als de API geen overeenkomstig recept vindt,
-                    //retourneert het een 404 (Not Found) HTTP-statuscode.
-                    //In dit geval zou EnsureSuccessStatusCode() een HttpRequestException veroorzaken.
-                    else if (response.StatusCode == HttpStatusCode.NotFound)
-                    {
-                        // Recept niet gevonden
-                        Debug.WriteLine("Recept niet gevonden.");
-                    }
-                    else
-                    {
-                        // Andere fout bij het ophalen van gegevens, toon foutmelding
-                        Debug.WriteLine($"Error while retrieving data: {response.ReasonPhrase}");
-                        MessageBox.Show($"Error while retrieving data: {response.ReasonPhrase}", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-            }
-            catch (HttpRequestException)
-            {
-                Debug.WriteLine("Error: couldn't get a connection with api.");
-                //MessageBox.Show("Fout: kon geen verbinding maken met api.", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error GetIngredientInfo: {ex.Message}");
-                //MessageBox.Show("Fout: unkown error.", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-
-            return null;
-        }
         #endregion
-
     }
 }

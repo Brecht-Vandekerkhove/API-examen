@@ -1,20 +1,13 @@
 ﻿using API_examen.Model;
 using API_examen.ViewModel.Commands;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using static API_examen.Data.Services.spoonacularApi;
 
 namespace API_examen.ViewModel
 {
-	internal class vm_MainWindow : vmBase
-	{
+    internal class vm_MainWindow : vmBase
+    {
         #region Constructor en initialisatiestatements
         Dictionary<string, int> receptenDictionary;
         public ICommand zoekCommand { get; }
@@ -32,13 +25,14 @@ namespace API_examen.ViewModel
         #endregion
 
         #region Binding Elementen
-
+        #region Binding voor buttons
         private string _zoek;
         public string Zoek { get => _zoek; set { if (_zoek != value) { _zoek = value; OnPropertyChange(nameof(Zoek)); } } }
 
         private string _serving;
         public string Serving { get => _serving; set { if (_serving != value) { _serving = value; OnPropertyChange(nameof(Serving)); } } }
-        
+        #endregion
+        #region Binding voor weergeven data
         private List<string> _ReceptenTitels;
         public List<string> ReceptenTitels
         {
@@ -102,21 +96,7 @@ namespace API_examen.ViewModel
                 }
             }
         }
-
-        //public string Recept
-        //{
-        //    get => _recept;
-        //    set
-        //    {
-        //        if (_recept != value)
-        //        {
-        //            _recept = value;
-        //            // Assume the title is the first line of the recipe description
-        //            ReceptTitel = value.Split('\n').FirstOrDefault()?.Trim();
-        //            OnPropertyChange(nameof(Recept));
-        //        }
-        //    }
-        //}
+        #endregion
         #region Binding checkboxes
         private bool _isVegetarian;
         public bool isVegetarian
@@ -229,8 +209,6 @@ namespace API_examen.ViewModel
             }
         }
         #endregion
-
-        //Code voor opzoeken ingrediënten van de listbox
         #region Binding voor opzoeken ingrediënten
         private string _selectedIngredient;
         public string SelectedIngredient
@@ -266,38 +244,14 @@ namespace API_examen.ViewModel
         #endregion
         #endregion
 
+        #region methodes voor commands
         private async void ZoekCmd(object parameter)
         {
             Debug.WriteLine($"Zoek gestart met {Zoek}");
-            //spoonacular.recept(Zoek);
-            //List<string> localIngredients;
-            //string localRecipe;
-
-            //spoonacular.ComplexSearch(Zoek, isVegan, geenLactose, geenGluten, geenVis, out localIngredients, out localRecipe);
-
-            //Ingredients = localIngredients;
-            //Recipe = localRecipe;
 
             try
             {
-                //// Await the result from the asynchronous method and store it in local variables
-                //var (localIngredients, localRecipe, localRecipeTitel) = await spoonacular.ComplexSearchAsync(
-                //    Zoek,
-                //    isVegan,
-                //    isVegetarian,
-                //    isKetogenic,
-                //    isPrimal,
-                //    dairyIntolerance,
-                //    glutenIntolerance,
-                //    seafoodIntolerance,
-                //    peanutIntolerance
-                //    );
-
-                //// Assign the values to your ViewModel properties
-                //Ingredients = localIngredients;
-                //Recipe = localRecipe;
-                //ReceptTitel = localRecipeTitel;
-
+                // Await de resultaten van de asynchronous method en sla ze op
                 var (localReceptenDictionary, localReceptenTitels) = await spoonacular.ComplexSearchDictionary(
                     Zoek,
                     isVegan,
@@ -309,28 +263,70 @@ namespace API_examen.ViewModel
                     seafoodIntolerance,
                     peanutIntolerance
                     );
+                //dictionary om later makkelijker id op te halen
                 receptenDictionary = localReceptenDictionary;
+                //list om te weergeven in listbox
                 ReceptenTitels = localReceptenTitels;
             }
             catch (Exception ex)
             {
-                // Handle exceptions
                 MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
+        private async void ServingSizeCmd(object parameter)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(SelectedIngredient))
+                {
+                    //Huidige eenheden (bvb 2 cups) weghalen
+                    //Werkt ook voor bvb "3 tomatoes", omdat deze in de listbox weergeven worden met 2 spaties
+                    string tempIngredient = String.Join(" ", SelectedIngredient.Split(' ').Skip(2));
+
+                    //Nieuwe eenheden uit textbox toevoegen, 100g in geval van ongeldige/geen input
+                    if (!string.IsNullOrEmpty(Serving) && double.TryParse(Serving, out double servingAmount))
+                    {
+                        SelectedIngredient = $"{servingAmount} g {tempIngredient}";
+                    }
+                    else if (string.IsNullOrEmpty(Serving)) SelectedIngredient = $"100 g {tempIngredient}";
+                    else
+                    {
+                        SelectedIngredient = $"100 g {tempIngredient}";
+                        Serving = string.Empty;
+                        MessageBox.Show($"Incorrect input!", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+
+                    //Ingrediëntinfo opnieuw genereren
+                    IngredientInfo = await calorieNinjas.GetIngredientInfo(SelectedIngredient);
+                }
+            }
+            catch
+            {
+                Debug.WriteLine("Fout in ServingSizeCmd.");
+            }
+        }
+        #endregion
+        #region methodes voor listboxitem changed
         private async void GetRecipeData()
         {
+            //Geselecteerde recept uit listbox ophalen
             if (!string.IsNullOrEmpty(SelectedRecept))
             {
+                //Reset textbox met ingrediëntinfo
+                IngredientInfo = string.Empty;
+
                 Debug.WriteLine($"Opzoeken info: {SelectedRecept}");
 
+                //Bijhorende id uit dictionary ophalen
                 if (receptenDictionary.TryGetValue(SelectedRecept, out int id))
                 {
                     Debug.WriteLine($"The ID for '{SelectedRecept}' is {id}.");
 
+                    //Recept zoeken met id
                     var (localIngredients, localRecipe, localRecipeTitel) = await spoonacular.RecipeData(id);
 
+                    //Resultaat weergeven dmv binding
                     Ingredients = localIngredients;
                     Recipe = localRecipe;
                     ReceptTitel = localRecipeTitel;
@@ -342,37 +338,17 @@ namespace API_examen.ViewModel
             }
         }
 
-        private async void ServingSizeCmd(object parameter)
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(SelectedIngredient))
-                {
-                    string tempIngredient = String.Join(" ", SelectedIngredient.Split(' ').Skip(2));
-                    if (!string.IsNullOrEmpty(Serving) && double.TryParse(Serving, out double servingAmount))
-                    {
-                        SelectedIngredient = $"{servingAmount} g {tempIngredient}";
-                    }
-                    else if (string.IsNullOrEmpty(Serving)) SelectedIngredient = $"100 g {tempIngredient}";
-                    else MessageBox.Show($"Incorrect input!", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
-
-                    IngredientInfo = await calorieNinjas.GetIngredientInfo(SelectedIngredient);
-                }
-            }
-            catch
-            {
-
-            }
-        }
-
         private async void GetIngredient()
         {
+            //Geselecteerde ingrediënt uit listbox ophalen
             if (!string.IsNullOrEmpty(SelectedIngredient))
             {
                 Debug.WriteLine($"Opzoeken info: {SelectedIngredient}");
 
+                //IngredientInfo weergeven
                 IngredientInfo = await calorieNinjas.GetIngredientInfo(SelectedIngredient);
             }
         }
+        #endregion
     }
 }

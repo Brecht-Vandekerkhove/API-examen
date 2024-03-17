@@ -17,12 +17,12 @@ namespace API_examen
             {
                 using (var client = new HttpClient())
                 {
-                    //string url = $"{ApiUrl}{ingredient}&api_key={ApiKey}";
                     string url = $"{ApiUrl}{ingredient}";
 
                     // Api toevoegen in request header
                     client.DefaultRequestHeaders.Add("X-Api-Key", ApiKey);
 
+                    //Ingrediënt date ophalen
                     var response = await client.GetAsync(url);
 
                     if (response.IsSuccessStatusCode)
@@ -35,6 +35,8 @@ namespace API_examen
                         if (ingredientInfo?.Items != null && ingredientInfo.Items.Any())
                         {
                             var item = ingredientInfo.Items.First();
+
+                            //Output genereren
                             string result = $"Name: {item.Name}\n" +
                                             $"Estimated serving size: {item.ServingSizeG}g\n\n" +
                                             $"Calories: {item.Calories}\n" +
@@ -54,6 +56,9 @@ namespace API_examen
                         }
                         return "Ingredient information not found.";
                     }
+                    //Als de API geen overeenkomstig recept vindt,
+                    //retourneert het een 404 (Not Found) HTTP-statuscode.
+                    //In dit geval zou EnsureSuccessStatusCode() een HttpRequestException veroorzaken.
                     else if (response.StatusCode == HttpStatusCode.NotFound)
                     {
                         Debug.WriteLine("Ingredient niet gevonden.");
@@ -69,10 +74,12 @@ namespace API_examen
             catch (HttpRequestException)
             {
                 Debug.WriteLine("Error: couldn't get a connection with api.");
+                MessageBox.Show("Fout: kon geen verbinding maken met api.", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error GetIngredientInfo: {ex.Message}");
+                MessageBox.Show("Fout: unkown error.", "Foutmelding", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             return null;
         }

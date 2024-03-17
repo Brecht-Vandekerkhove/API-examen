@@ -9,22 +9,6 @@ namespace API_examen.Data.Services
 {
     internal class spoonacularApi
     {
-        //public List<Recipe> Recipes { get; set; }
-
-        //public class Recipe
-        //{
-        //    public string Title { get; set; }
-        //    public string Instructions { get; set; }
-        //    public List<Ingredient> ExtendedIngredients { get; set; }
-        //}
-
-        //public class Ingredient
-        //{
-        //    public string Id { get; set; }
-        //    public string Name { get; set; }
-        //    public string Amount { get; set; }
-        //    public string Unit { get; set; }
-        //}
 
         [JsonPropertyName("results")]
         public List<Recipe> Recipes { get; set; }
@@ -32,7 +16,7 @@ namespace API_examen.Data.Services
         public class Recipe
         {
             [JsonPropertyName("id")]
-            public int Id { get; set; } // Zorg ervoor da de type matcht met het id-format (int?)
+            public int Id { get; set; }
 
             [JsonPropertyName("title")]
             public string Title { get; set; }
@@ -53,7 +37,7 @@ namespace API_examen.Data.Services
             public string Name { get; set; }
 
             [JsonPropertyName("amount")]
-            public double Amount { get; set; } // amount double?
+            public double Amount { get; set; }
 
             [JsonPropertyName("unit")]
             public string Unit { get; set; }
