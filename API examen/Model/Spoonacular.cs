@@ -25,29 +25,68 @@ namespace API_examen.Model
         //}
 
         string complexpartUrl = "";
-        public async Task<(List<string> Ingredients, string Recipe, string RecipeTitel)> ComplexSearchAsync(string zoek, bool isVegan, bool geenLactose, bool geenGluten, bool geenVis)
+        public async Task<(List<string> Ingredients, string Recipe, string RecipeTitel)> ComplexSearchAsync(
+            string zoek,
+            bool isVegan ,
+            bool isVegetarian,
+            bool isKetogenic,
+            bool isPrimal,
+            bool dairyIntolerance,
+            bool glutenIntolerance,
+            bool seafoodIntolerance,
+            bool peanutIntolerance
+            )
+
         {
             complexpartUrl = "";
 
-            if (isVegan)
-                complexpartUrl += "&diet=vegan";
+            // Dieet
+            List<string> dietReq = new List<string>();
+            if (isVegan) dietReq.Add("vegan");
+            if (isVegetarian) dietReq.Add("vegetarian");
+            if (isKetogenic) dietReq.Add("ketogenic");
+            if (isPrimal) dietReq.Add("primal");
 
-            string intolerances = "";
-            if (geenLactose)
-                intolerances += "dairy,";
-            if (geenGluten)
-                intolerances += "gluten,";
-            if (geenVis)
-                intolerances += "seafood,";
-
-            if (intolerances != "")
+            if (dietReq.Any())
             {
-                intolerances = intolerances.TrimEnd(','); // Remove the last comma
-                complexpartUrl += "&intolerances=" + intolerances;
+                complexpartUrl += "&diet=" + string.Join(",", dietReq);
             }
 
-            Debug.WriteLine($"Search string: {zoek}, bools {isVegan} {geenLactose} {geenGluten} {geenVis}");
-            Debug.WriteLine($"complexpartUrl: {complexpartUrl}");
+            // Intoleranties
+            List<string> intoleranties = new List<string>();
+            if (dairyIntolerance) intoleranties.Add("dairy");
+            if (glutenIntolerance) intoleranties.Add("gluten");
+            if (seafoodIntolerance) intoleranties.Add("seafood");
+            if (peanutIntolerance) intoleranties.Add("peanut");
+
+            if (intoleranties.Any())
+            {
+                complexpartUrl += "&intolerances=" + string.Join(",", intoleranties);
+            }
+
+            Debug.WriteLine($"Search string: {zoek}, diet and intolerances {complexpartUrl}");
+
+            //complexpartUrl = "";
+
+            //if (isVegan)
+            //    complexpartUrl += "&diet=vegan";
+
+            //string intolerances = "";
+            //if (geenLactose)
+            //    intolerances += "dairy,";
+            //if (geenGluten)
+            //    intolerances += "gluten,";
+            //if (geenVis)
+            //    intolerances += "seafood,";
+
+            //if (intolerances != "")
+            //{
+            //    intolerances = intolerances.TrimEnd(','); // Remove the last comma
+            //    complexpartUrl += "&intolerances=" + intolerances;
+            //}
+
+            //Debug.WriteLine($"Search string: {zoek}, bools {isVegan} {geenLactose} {geenGluten} {geenVis}");
+            //Debug.WriteLine($"complexpartUrl: {complexpartUrl}");
 
             // Perform the complex search
             spoonacularApi complexResult = await GetData("complex", zoek);

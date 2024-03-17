@@ -53,61 +53,6 @@ namespace API_examen.ViewModel
             }
         }
 
-        private bool _isVegan;
-        public bool isVegan
-        {
-            get => _isVegan;
-            set
-            {
-                if (_isVegan != value)
-                {
-                    _isVegan = value;
-                    OnPropertyChange(nameof(isVegan));
-                }
-            }
-        }
-
-        private bool _geenLactose;
-        public bool geenLactose
-        {
-            get => _geenLactose;
-            set
-            {
-                if (_geenLactose != value)
-                {
-                    _geenLactose = value;
-                    OnPropertyChange(nameof(geenLactose));
-                }
-            }
-        }
-
-        private bool _geenGluten;
-        public bool geenGluten
-        {
-            get => _geenGluten;
-            set
-            {
-                if (_geenGluten != value)
-                {
-                    _geenGluten = value;
-                    OnPropertyChange(nameof(geenGluten));
-                }
-            }
-        }
-
-        private bool _geenVis;
-        public bool geenVis
-        {
-            get => _geenVis;
-            set
-            {
-                if (_geenVis != value)
-                {
-                    _geenVis = value;
-                    OnPropertyChange(nameof(geenVis));
-                }
-            }
-        }
 
         private string _receptTitel;
         public string ReceptTitel
@@ -137,6 +82,118 @@ namespace API_examen.ViewModel
         //        }
         //    }
         //}
+        #region Binding checkboxes
+        private bool _isVegetarian;
+        public bool isVegetarian
+        {
+            get => _isVegetarian;
+            set
+            {
+                if (_isVegetarian != value)
+                {
+                    _isVegetarian = value;
+                    OnPropertyChange(nameof(isVegetarian));
+                }
+            }
+        }
+        private bool _isVegan;
+        public bool isVegan
+        {
+            get => _isVegan;
+            set
+            {
+                if (_isVegan != value)
+                {
+                    _isVegan = value;
+                    OnPropertyChange(nameof(isVegan));
+                }
+            }
+        }
+
+        private bool _isKetogenic;
+        public bool isKetogenic
+        {
+            get => _isKetogenic;
+            set
+            {
+                if (_isKetogenic != value)
+                {
+                    _isKetogenic = value;
+                    OnPropertyChange(nameof(isKetogenic));
+                }
+            }
+        }
+
+        private bool _isPrimal;
+        public bool isPrimal
+        {
+            get => _isPrimal;
+            set
+            {
+                if (_isPrimal != value)
+                {
+                    _isPrimal = value;
+                    OnPropertyChange(nameof(isPrimal));
+                }
+            }
+        }
+
+        private bool _dairyIntolerance;
+        public bool dairyIntolerance
+        {
+            get => _dairyIntolerance;
+            set
+            {
+                if (_dairyIntolerance != value)
+                {
+                    _dairyIntolerance = value;
+                    OnPropertyChange(nameof(dairyIntolerance));
+                }
+            }
+        }
+
+        private bool _glutenIntolerance;
+        public bool glutenIntolerance
+        {
+            get => _glutenIntolerance;
+            set
+            {
+                if (_glutenIntolerance != value)
+                {
+                    _glutenIntolerance = value;
+                    OnPropertyChange(nameof(glutenIntolerance));
+                }
+            }
+        }
+
+        private bool _seafoodIntolerance;
+        public bool seafoodIntolerance
+        {
+            get => _seafoodIntolerance;
+            set
+            {
+                if (_seafoodIntolerance != value)
+                {
+                    _seafoodIntolerance = value;
+                    OnPropertyChange(nameof(seafoodIntolerance));
+                }
+            }
+        }
+
+        private bool _peanutIntolerance;
+        public bool peanutIntolerance
+        {
+            get => _peanutIntolerance;
+            set
+            {
+                if (_peanutIntolerance != value)
+                {
+                    _peanutIntolerance = value;
+                    OnPropertyChange(nameof(peanutIntolerance));
+                }
+            }
+        }
+        #endregion
 
         //Code voor opzoeken ingrediënten van de listbox
         #region Binding voor opzoeken ingrediënten
@@ -189,7 +246,17 @@ namespace API_examen.ViewModel
             try
             {
                 // Await the result from the asynchronous method and store it in local variables
-                var (localIngredients, localRecipe, localRecipeTitel) = await spoonacular.ComplexSearchAsync(Zoek, isVegan, _geenLactose, _geenGluten, _geenVis);
+                var (localIngredients, localRecipe, localRecipeTitel) = await spoonacular.ComplexSearchAsync(
+                    Zoek,
+                    isVegan,
+                    isVegetarian,
+                    isKetogenic,
+                    isPrimal,
+                    dairyIntolerance,
+                    glutenIntolerance,
+                    seafoodIntolerance,
+                    peanutIntolerance
+                    );
 
                 // Assign the values to your ViewModel properties
                 Ingredients = localIngredients;

@@ -16,13 +16,18 @@
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="txtzoek" Text="{Binding Zoek}" BorderBrush="Black" HorizontalAlignment="Left" Margin="377,24,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="325" Grid.Column="1" Height="18"/>
                     <Button Command="{Binding SearchCommand}" Content="Search" BorderBrush="Black" HorizontalAlignment="Left" Margin="397,50,0,0" VerticalAlignment="Top" Grid.Column="1" Height="20" Width="39"/>
-                    <CheckBox Content="Vegan" IsChecked="{Binding isVegan}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,50,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="15" Width="53"/>
-                    <CheckBox Content="Gluten-free" IsChecked="{Binding geenGluten}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,94,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="15" Width="80"/>
-                    <CheckBox Content="lactose-free" IsChecked="{Binding geenLactose}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,70,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="15" Width="82"/>
-                    <CheckBox Content="No Fish " IsChecked="{Binding geenVis}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,116,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="15" Width="63"/>
+                    <CheckBox Content="Veggie" IsChecked="{Binding isVegetarian}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,50,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="15"/>
+                    <CheckBox Content="Vegan" IsChecked="{Binding isVegan}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,70,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="15"/>
+                    <CheckBox Content="Keto" IsChecked="{Binding isKetogenic}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,90,0,0" VerticalAlignment="Top" Height="15" Grid.ColumnSpan="2"/>
+                    <CheckBox Content="Primal" IsChecked="{Binding isPrimal}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,110,0,0" VerticalAlignment="Top" Height="15" Grid.ColumnSpan="2"/>
+                    <CheckBox Content="Dairy" IsChecked="{Binding dairyIntolerance}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,162,0,0" VerticalAlignment="Top" Height="15" Grid.ColumnSpan="2"/>
+                    <CheckBox Content="Gluten" IsChecked="{Binding glutenIntolerance}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,182,0,0" VerticalAlignment="Top" Height="15" Grid.ColumnSpan="2"/>
+                    <CheckBox Content="Seafood" IsChecked="{Binding seafoodIntolerance}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,202,0,0" VerticalAlignment="Top" Height="15" Grid.ColumnSpan="2"/>
+                    <CheckBox Content="Peanut" IsChecked="{Binding peanutIntolerance}" BorderBrush="Black" HorizontalAlignment="Left" Margin="42,222,0,0" VerticalAlignment="Top" Height="15" Grid.ColumnSpan="2"/>
                     <Label Content="Look up recipe:" BorderBrush="Black" HorizontalAlignment="Left" Margin="282,20,0,0" VerticalAlignment="Top" Width="95" RenderTransformOrigin="0.53,0.401" Grid.Column="1" Height="26"/>
                     <Image HorizontalAlignment="Left"  Height="193" Margin="517,131,0,0" VerticalAlignment="Top" Width="190" Source="/Images/recept.png" Grid.Column="1"/>
                     <Label Content="Dietary conditions:" HorizontalAlignment="Left" Margin="42,24,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="26" Width="109"/>
+                    <Label Content="Intolerances:" HorizontalAlignment="Left" Margin="42,131,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Height="26" Width="109" RenderTransformOrigin="0.657,0.065"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Ingredients">
