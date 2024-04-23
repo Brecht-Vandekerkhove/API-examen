@@ -22,7 +22,7 @@ namespace API_examen
                     // Api toevoegen in request header
                     client.DefaultRequestHeaders.Add("X-Api-Key", ApiKey);
 
-                    //Ingrediënt date ophalen
+                    //Ingrediënt data ophalen
                     var response = await client.GetAsync(url);
 
                     if (response.IsSuccessStatusCode)
